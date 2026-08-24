@@ -1,0 +1,61 @@
+# ── Dependencies ─────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ── Environment files — NEVER commit real keys ────────────────
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+
+# ── Build output ──────────────────────────────────────────────
+frontend/dist/
+frontend/build/
+backend/dist/
+
+# ── Uploads (user files — not source code) ────────────────────
+backend/uploads/
+
+# ── Tesseract language data (large binary, auto-downloaded) ───
+backend/*.traineddata
+backend/tessdata/
+*.traineddata
+
+# ── Test scripts (debug/dev only) ─────────────────────────────
+backend/test-*.js
+backend/test-*.mjs
+backend/test-*.txt
+backend/test-out*.txt
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── OS / Editor ───────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.vscode/settings.json
+.idea/
+
+# ── Coverage ──────────────────────────────────────────────────
+coverage/
+*.lcov
+.nyc_output/
+
+# ── Misc ──────────────────────────────────────────────────────
+*.pid
+*.seed
+*.pid.lock

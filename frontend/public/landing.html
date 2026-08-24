@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lucent — Resume screening that sees clearly</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --void:   #0B0E14;
+      --void-2: #111623;
+      --paper:  #EDEAE1;
+      --ink:    #1B1F2A;
+      --signal: #5EEAD4;
+      --reject: #FF8A73;
+      --mist:   #8B93A7;
+      --line:   #262C3B;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--void);
+      color: var(--paper);
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Canvas */
+    #scene {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Vignette */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(11,14,20,0.7) 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Grain */
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px 256px;
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px clamp(20px, 5vw, 60px);
+      transition: background 0.4s ease, backdrop-filter 0.4s ease, border-color 0.4s ease;
+      border-bottom: 1px solid transparent;
+    }
+    nav.scrolled {
+      background: rgba(11,14,20,0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-color: var(--line);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--paper);
+      text-decoration: none;
+    }
+    .nav-dot {
+      width: 8px; height: 8px;
+      background: var(--signal);
+      border-radius: 50%;
+      animation: pulse-dot 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .btn-ghost {
+      background: transparent;
+      border-color: var(--line);
+      color: var(--mist);
+    }
+    .btn-ghost:hover {
+      border-color: var(--mist);
+      color: var(--paper);
+    }
+    .btn-signal {
+      background: var(--signal);
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .btn-signal:hover {
+      background: #7df0e0;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(94,234,212,0.3);
+    }
+    .btn-lg {
+      padding: 14px 32px;
+      font-size: 16px;
+    }
+
+    /* Sections */
+    section {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 120px clamp(20px, 8vw, 120px);
+    }
+    .section-inner {
+      max-width: 560px;
+    }
+
+    /* Typography */
+    .eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--signal);
+      margin-bottom: 20px;
+      display: block;
+    }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(36px, 5vw, 68px);
+      font-weight: 700;
+      line-height: 1.07;
+      letter-spacing: -0.03em;
+      color: var(--paper);
+      margin-bottom: 28px;
+    }
+    h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(28px, 4vw, 52px);
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      color: var(--paper);
+      margin-bottom: 24px;
+    }
+    p.lead {
+      font-size: clamp(16px, 1.5vw, 19px);
+      color: var(--mist);
+      line-height: 1.7;
+      margin-bottom: 36px;
+      max-width: 480px;
+    }
+
+    /* Scan beam */
+    #scanBeam {
+      position: fixed;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--signal), transparent);
+      z-index: 20;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 0 20px 4px rgba(94,234,212,0.5);
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* Steps */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 32px;
+      margin-top: 48px;
+    }
+    .step {
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(17,22,35,0.6);
+      backdrop-filter: blur(8px);
+      transition: border-color 0.3s ease, transform 0.3s ease;
+    }
+    .step:hover {
+      border-color: rgba(94,234,212,0.3);
+      transform: translateY(-3px);
+    }
+    .step-number {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--signal);
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .step h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--paper);
+      margin-bottom: 8px;
+    }
+    .step p {
+      font-size: 14px;
+      color: var(--mist);
+      line-height: 1.6;
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 40px;
+      margin-top: 48px;
+    }
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .stat-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(40px, 5vw, 64px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--paper);
+      line-height: 1;
+    }
+    .stat-value span { color: var(--signal); }
+    .stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--mist);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* Reveal animations */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    /* Hero buttons */
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* Score overlay */
+    .score-overlay {
+      position: fixed;
+      top: 50%;
+      right: clamp(20px, 8vw, 120px);
+      transform: translateY(-50%);
+      z-index: 15;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .score-overlay.visible { opacity: 1; }
+    .score-ring-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--signal);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* Scene labels */
+    .scene-label {
+      position: fixed;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--signal);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      z-index: 15;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    /* Footer */
+    footer {
+      position: relative;
+      z-index: 10;
+      padding: 60px clamp(20px, 5vw, 60px);
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .footer-brand {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--paper);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .footer-copy {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--mist);
+      letter-spacing: 0.05em;
+    }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    .footer-links a {
+      font-size: 13px;
+      color: var(--mist);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    .footer-links a:hover { color: var(--paper); }
+
+    /* Media queries */
+    @media (max-width: 820px) {
+      .nav-actions .btn-ghost:first-child { display: none; }
+      section { padding: 100px 24px; }
+      .steps { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 480px) {
+      .nav-actions .btn-ghost { display: none; }
+      .stats { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    }
+
+    /* CTA section accent */
+    #cta { text-align: left; }
+    #cta h2 { color: var(--paper); }
+    #cta p.lead { color: var(--mist); }
+  </style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div class="vignette"></div>
+  <div class="grain"></div>
+  <div id="scanBeam"></div>
+
+  <!-- Nav -->
+  <nav id="mainNav">
+    <a href="/" class="nav-brand">LUCENT <span class="nav-dot"></span></a>
+    <div class="nav-actions">
+      <a href="/login" class="btn btn-ghost" data-login>Log in</a>
+      <a href="/signup" class="btn btn-ghost" data-signup>Sign up</a>
+      <a href="/signup?intent=upload" class="btn btn-signal" data-upload>Upload resume</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section id="hero">
+    <div class="section-inner">
+      <span class="eyebrow reveal">AI-powered resume intelligence</span>
+      <h1 class="reveal reveal-delay-1">Every resume has a signal.<br>Most systems read noise.</h1>
+      <p class="lead reveal reveal-delay-2">Lucent cuts through the stack. It reads what matters, surfaces who fits, and returns a shortlist — not a spreadsheet.</p>
+      <div class="hero-actions reveal reveal-delay-3">
+        <a href="/signup?intent=upload" class="btn btn-signal btn-lg" data-upload>Upload resume</a>
+        <a href="/signup" class="btn btn-ghost btn-lg" data-signup>Get started free</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Noise / Problem -->
+  <section id="noise">
+    <div class="section-inner">
+      <span class="eyebrow reveal">The problem</span>
+      <h2 class="reveal reveal-delay-1">Two hundred applicants. One afternoon. Zero clarity.</h2>
+      <p class="lead reveal reveal-delay-2">Hiring teams spend hours inside PDFs that all start to blur together. The best fit is in there. It's just buried under 190 maybes.</p>
+      <p class="lead reveal reveal-delay-3">Manual screening is slow, inconsistent, and costs you candidates who would've been perfect — if you'd had time to read past page one.</p>
+    </div>
+  </section>
+
+  <!-- Scan section -->
+  <section id="scan-section">
+    <div class="section-inner">
+      <span class="eyebrow reveal">The scan</span>
+      <h2 class="reveal reveal-delay-1">Signal, isolated in under four seconds.</h2>
+      <p class="lead reveal reveal-delay-2">Lucent's AI reads the full document, extracts structured data, and cross-references it against your role requirements — before you've opened your inbox.</p>
+      <p class="lead reveal reveal-delay-3">No templates. No rigid formats. Any resume, any structure, any stack.</p>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how">
+    <div class="section-inner" style="max-width:900px;">
+      <span class="eyebrow reveal">How it works</span>
+      <h2 class="reveal reveal-delay-1">Four steps. One result.</h2>
+      <div class="steps">
+        <div class="step reveal reveal-delay-1">
+          <span class="step-number">01 — Upload</span>
+          <h3>Drop the stack</h3>
+          <p>Upload one or a hundred resumes. PDF, DOCX, plain text — Lucent handles the format chaos so you don't have to.</p>
+        </div>
+        <div class="step reveal reveal-delay-2">
+          <span class="step-number">02 — Parse</span>
+          <h3>Structure the signal</h3>
+          <p>Our parser extracts skills, experience, education, and tenure from every document — even poorly formatted ones.</p>
+        </div>
+        <div class="step reveal reveal-delay-3">
+          <span class="step-number">03 — Match</span>
+          <h3>Compare to the role</h3>
+          <p>Lucent scores each candidate against your job description. Required skills, experience depth, and fit indicators — weighted and ranked.</p>
+        </div>
+        <div class="step reveal reveal-delay-4">
+          <span class="step-number">04 — Shortlist</span>
+          <h3>Get your candidates</h3>
+          <p>Receive a ranked shortlist with scores and match rationale. No black box — you see exactly why each candidate ranked where they did.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust / Stats -->
+  <section id="trust">
+    <div class="section-inner" style="max-width:900px;">
+      <span class="eyebrow reveal">By the numbers</span>
+      <h2 class="reveal reveal-delay-1">Built for speed, tuned for accuracy.</h2>
+      <div class="stats">
+        <div class="stat reveal reveal-delay-1">
+          <span class="stat-value">4.2<span>s</span></span>
+          <span class="stat-label">Average scan time per resume</span>
+        </div>
+        <div class="stat reveal reveal-delay-2">
+          <span class="stat-value">68<span>%</span></span>
+          <span class="stat-label">Reduction in screening time</span>
+        </div>
+        <div class="stat reveal reveal-delay-3">
+          <span class="stat-value">1</span>
+          <span class="stat-label">Read to shortlist — not fifty</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="cta">
+    <div class="section-inner">
+      <span class="eyebrow reveal">Get started</span>
+      <h2 class="reveal reveal-delay-1">Stop reading resumes.<br>Start reading results.</h2>
+      <p class="lead reveal reveal-delay-2">Upload your first batch today. Lucent returns a ranked shortlist — no setup, no training data required.</p>
+      <div class="hero-actions reveal reveal-delay-3">
+        <a href="/signup?intent=upload" class="btn btn-signal btn-lg" data-upload>Upload resume</a>
+        <a href="/signup" class="btn btn-ghost btn-lg" data-signup>Create free account</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-brand">LUCENT <span class="nav-dot"></span></div>
+    <div class="footer-links">
+      <a href="/login" data-login>Log in</a>
+      <a href="/signup" data-signup>Sign up</a>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+    </div>
+    <span class="footer-copy">&copy; 2025 Lucent. Resume intelligence.</span>
+  </footer>
+
+  <!-- CDN Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // ─── Constants & State ───────────────────────────────────────────────────────
+    const isMobile = window.innerWidth < 820;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const lerpFactor = prefersReduced ? 1 : 0.05;
+
+    const mouse = { x: 0, y: 0 };
+    const scanState = { progress: 0, dirty: true, lastProgress: -1 };
+    let targetRotY = -0.15, targetRotX = 0.05;
+    let clock, renderer, scene, camera;
+    let resumeDoc, resumeTexture, resumeTexturePlane;
+    let jobCard;
+    let aiLight, coralLight;
+    let noiseCards = [];
+    let sectionPlanes = [];
+    let connectionLines = [];
+    let scoreRing;
+    let particles;
+    let animationId;
+
+    // Stage targets for camera/resume
+    const stageTargets = {
+      camera: { x: 0, y: 0, z: 8 },
+      resume: { x: 1.8, y: 0.2, z: 0, rotY: -0.15, rotX: 0.05 },
+    };
+
+    // ─── Nav scroll ─────────────────────────────────────────────────────────────
+    const nav = document.getElementById('mainNav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+    }, { passive: true });
+
+    // ─── Reveal on scroll ────────────────────────────────────────────────────────
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); }
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // ─── Button routing ──────────────────────────────────────────────────────────
+    document.querySelectorAll('[data-upload]').forEach(el => {
+      el.addEventListener('click', e => { e.preventDefault(); window.location.href = '/signup?intent=upload'; });
+    });
+    document.querySelectorAll('[data-signup]').forEach(el => {
+      el.addEventListener('click', e => { e.preventDefault(); window.location.href = '/signup'; });
+    });
+    document.querySelectorAll('[data-login]').forEach(el => {
+      el.addEventListener('click', e => { e.preventDefault(); window.location.href = '/login'; });
+    });
+
+    // ─── Mouse parallax ─────────────────────────────────────────────────────────
+    window.addEventListener('pointermove', e => {
+      mouse.x = (e.clientX / window.innerWidth  - 0.5) * 2;
+      mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
+    }, { passive: true });
+
+    // ─── Canvas Texture: buildResumeTexture ──────────────────────────────────────
+    function buildResumeTexture(scanProgress) {
+      const W = 512, H = 700;
+      const cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      const ctx = cv.getContext('2d');
+
+      // Background
+      ctx.fillStyle = '#EDEAE1';
+      ctx.fillRect(0, 0, W, H);
+
+      // ── Header ──────────────────────────────
+      // Avatar circle
+      const grad = ctx.createRadialGradient(56, 60, 5, 56, 60, 28);
+      grad.addColorStop(0, '#8fa3c7');
+      grad.addColorStop(1, '#4a5568');
+      ctx.beginPath();
+      ctx.arc(56, 60, 28, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Name bar
+      ctx.fillStyle = '#1B1F2A';
+      ctx.fillRect(100, 44, 180, 14);
+
+      // Title bar
+      ctx.fillStyle = '#8B93A7';
+      ctx.fillRect(100, 66, 120, 9);
+
+      // Email/phone small rects
+      ctx.fillStyle = '#8B93A7';
+      ctx.fillRect(100, 82, 80, 7);
+      ctx.fillRect(190, 82, 60, 7);
+
+      // Divider
+      ctx.strokeStyle = '#C8C4BB';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(20, 118); ctx.lineTo(W - 20, 118);
+      ctx.stroke();
+
+      // ── EXPERIENCE section ───────────────────
+      // Label
+      ctx.fillStyle = '#5EEAD4';
+      ctx.fillRect(20, 130, 80, 9);
+
+      const expEntries = [
+        { y: 148 },
+        { y: 190 },
+        { y: 232 },
+      ];
+      expEntries.forEach(({ y }) => {
+        ctx.fillStyle = '#1B1F2A'; ctx.fillRect(20, y, 200, 11);
+        ctx.fillStyle = '#8B93A7'; ctx.fillRect(20, y + 15, 150, 8);
+        ctx.fillStyle = '#8B93A7'; ctx.fillRect(W - 100, y, 80, 8);
+        ctx.fillStyle = '#C0BDB4'; ctx.fillRect(20, y + 28, 230, 6);
+        ctx.fillRect(20, y + 38, 180, 6);
+      });
+
+      // Divider
+      ctx.strokeStyle = '#C8C4BB'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(20, 285); ctx.lineTo(W - 20, 285); ctx.stroke();
+
+      // ── SKILLS section ───────────────────────
+      ctx.fillStyle = '#5EEAD4';
+      ctx.fillRect(20, 295, 50, 9);
+
+      const chips = ['React', 'Node.js', 'MongoDB', 'AWS', 'Python', 'TypeScript'];
+      const chipColors = ['#5EEAD4', '#5EEAD4', '#5EEAD4', '#5EEAD4', '#5EEAD4', '#5EEAD4'];
+      chips.forEach((chip, i) => {
+        const row = Math.floor(i / 3);
+        const col = i % 3;
+        const cx2 = 20 + col * 150, cy2 = 312 + row * 26;
+        const cw = 130, ch = 20;
+        ctx.strokeStyle = '#8B93A7'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(cx2, cy2, cw, ch, 10);
+        ctx.stroke();
+        ctx.fillStyle = '#1B1F2A';
+        ctx.fillRect(cx2 + 8, cy2 + 6, cw - 16, 8);
+      });
+
+      // Divider
+      ctx.strokeStyle = '#C8C4BB'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(20, 370); ctx.lineTo(W - 20, 370); ctx.stroke();
+
+      // ── EDUCATION section ────────────────────
+      ctx.fillStyle = '#5EEAD4'; ctx.fillRect(20, 380, 70, 9);
+      ctx.fillStyle = '#1B1F2A'; ctx.fillRect(20, 395, 190, 11);
+      ctx.fillStyle = '#8B93A7'; ctx.fillRect(20, 411, 140, 8);
+      ctx.fillStyle = '#8B93A7'; ctx.fillRect(20, 424, 80, 7);
+      ctx.fillRect(W - 70, 395, 50, 8);
+
+      // ── AI SCAN OVERLAY ──────────────────────
+      if (scanProgress > 0) {
+        const scanY = Math.round(scanProgress * H);
+
+        // Dim area below scan line
+        ctx.fillStyle = 'rgba(11,14,20,0.35)';
+        ctx.fillRect(0, scanY, W, H - scanY);
+
+        // Teal highlights on scanned sections above line
+        if (scanY > 130) {
+          ctx.fillStyle = 'rgba(94,234,212,0.07)';
+          ctx.fillRect(18, 130, W - 36, Math.min(scanY - 130, 155));
+        }
+        if (scanY > 295) {
+          ctx.fillStyle = 'rgba(94,234,212,0.07)';
+          ctx.fillRect(18, 295, W - 36, Math.min(scanY - 295, 75));
+        }
+        if (scanY > 380) {
+          ctx.fillStyle = 'rgba(94,234,212,0.07)';
+          ctx.fillRect(18, 380, W - 36, Math.min(scanY - 380, 70));
+        }
+
+        // Scan line glow
+        ctx.save();
+        ctx.shadowColor = '#5EEAD4';
+        ctx.shadowBlur = 20;
+        ctx.strokeStyle = 'rgba(94,234,212,0.9)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, scanY); ctx.lineTo(W, scanY);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // ── SCORE INDICATOR ─────────────────────
+      if (scanProgress > 0.7) {
+        const alpha = Math.min(1, (scanProgress - 0.7) / 0.3);
+        const cx3 = W - 55, cy3 = 55, r = 30;
+
+        // Ring background
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(cx3, cy3, r, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(94,234,212,0.2)';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Ring progress arc
+        ctx.beginPath();
+        ctx.arc(cx3, cy3, r, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * 0.87));
+        ctx.strokeStyle = '#5EEAD4';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Score text
+        ctx.fillStyle = '#1B1F2A';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('87', cx3, cy3);
+        ctx.restore();
+      }
+
+      if (resumeTexture) {
+        resumeTexture.dispose();
+      }
+      resumeTexture = new THREE.CanvasTexture(cv);
+      if (resumeTexturePlane) {
+        resumeTexturePlane.material.map = resumeTexture;
+        resumeTexturePlane.material.needsUpdate = true;
+      }
+      return resumeTexture;
+    }
+
+    // ─── Job Description Texture ─────────────────────────────────────────────────
+    function buildJobTexture() {
+      const W = 480, H = 680;
+      const cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      const ctx = cv.getContext('2d');
+
+      ctx.fillStyle = '#1B2333';
+      ctx.fillRect(0, 0, W, H);
+
+      // Header label
+      ctx.fillStyle = '#5EEAD4';
+      ctx.fillRect(20, 20, 110, 9);
+
+      // Divider
+      ctx.strokeStyle = '#262C3B'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(20, 38); ctx.lineTo(W - 20, 38); ctx.stroke();
+
+      // Role title
+      ctx.fillStyle = '#EDEAE1'; ctx.fillRect(20, 48, 220, 16);
+      ctx.fillStyle = '#8B93A7'; ctx.fillRect(20, 72, 140, 10);
+
+      // Requirements header
+      ctx.fillStyle = '#5EEAD4'; ctx.fillRect(20, 100, 90, 8);
+
+      // Requirement lines
+      const reqs = [0, 1, 2, 3, 4, 5];
+      reqs.forEach((_, i) => {
+        const y = 118 + i * 28;
+        ctx.fillStyle = '#5EEAD4';
+        ctx.beginPath(); ctx.arc(28, y + 5, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#8B93A7';
+        ctx.fillRect(40, y, 200 - (i % 2) * 40, 10);
+      });
+
+      // Divider
+      ctx.strokeStyle = '#262C3B';
+      ctx.beginPath(); ctx.moveTo(20, 290); ctx.lineTo(W - 20, 290); ctx.stroke();
+
+      // Skills wanted header
+      ctx.fillStyle = '#5EEAD4'; ctx.fillRect(20, 300, 100, 8);
+
+      const jdChips = ['React', 'Node.js', 'AWS', 'MongoDB'];
+      jdChips.forEach((_, i) => {
+        const col = i % 2, row = Math.floor(i / 2);
+        const cx2 = 20 + col * 160, cy2 = 318 + row * 30;
+        ctx.strokeStyle = '#5EEAD4'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.roundRect(cx2, cy2, 140, 22, 11); ctx.stroke();
+        ctx.fillStyle = '#5EEAD4'; ctx.fillRect(cx2 + 10, cy2 + 7, 80, 8);
+      });
+
+      return new THREE.CanvasTexture(cv);
+    }
+
+    // ─── Three.js Init ───────────────────────────────────────────────────────────
+    function initThree() {
+      clock = new THREE.Clock();
+
+      // Renderer
+      const canvas = document.getElementById('scene');
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.outputEncoding = THREE.sRGBEncoding;
+
+      // Scene
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color('#0B0E14');
+      scene.fog = new THREE.FogExp2('#0B0E14', 0.008);
+
+      // Camera
+      camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 200);
+      camera.position.set(0, 0, 8);
+
+      // ── Lighting ─────────────────────────────
+      const hemi = new THREE.HemisphereLight('#8fa3c7', '#0b0e14', 0.4);
+      scene.add(hemi);
+
+      const dir = new THREE.DirectionalLight('#ffffff', 1.1);
+      dir.position.set(12, 18, 14);
+      dir.castShadow = true;
+      scene.add(dir);
+
+      aiLight = new THREE.PointLight('#5EEAD4', 1.8, 80);
+      aiLight.position.set(-12, 6, -10);
+      scene.add(aiLight);
+
+      coralLight = new THREE.PointLight('#FF8A73', 0.3, 60);
+      coralLight.position.set(10, -6, -30);
+      scene.add(coralLight);
+
+      // ── Resume Document ───────────────────────
+      resumeDoc = new THREE.Group();
+
+      // Paper body
+      const paperGeo = new THREE.BoxGeometry(3.2, 4.5, 0.04);
+      const paperMat = new THREE.MeshStandardMaterial({ color: '#EDEAE1', roughness: 0.9, metalness: 0.0 });
+      const paperBody = new THREE.Mesh(paperGeo, paperMat);
+      paperBody.castShadow = true;
+      resumeDoc.add(paperBody);
+
+      // Edge highlight
+      const edgeGeo = new THREE.BoxGeometry(3.22, 4.52, 0.038);
+      const edgeMat = new THREE.MeshStandardMaterial({ color: '#d4d0c8', roughness: 1.0, transparent: true, opacity: 0.3 });
+      const edgeMesh = new THREE.Mesh(edgeGeo, edgeMat);
+      resumeDoc.add(edgeMesh);
+
+      // Front face texture plane
+      resumeTexture = buildResumeTexture(0);
+      const texGeo = new THREE.PlaneGeometry(3.18, 4.47);
+      const texMat = new THREE.MeshStandardMaterial({ map: resumeTexture, roughness: 0.85, metalness: 0.0 });
+      resumeTexturePlane = new THREE.Mesh(texGeo, texMat);
+      resumeTexturePlane.position.z = 0.021;
+      resumeDoc.add(resumeTexturePlane);
+
+      resumeDoc.position.set(1.8, 0.2, 0);
+      resumeDoc.rotation.set(0.05, -0.15, 0.02);
+      scene.add(resumeDoc);
+
+      // ── Job Description Card ─────────────────
+      if (!isMobile) {
+        jobCard = new THREE.Group();
+        const jdGeo = new THREE.BoxGeometry(2.4, 3.4, 0.035);
+        const jdMat = new THREE.MeshStandardMaterial({ color: '#1B2333', roughness: 0.8, metalness: 0.05 });
+        const jdBody = new THREE.Mesh(jdGeo, jdMat);
+        jobCard.add(jdBody);
+
+        const jdTex = buildJobTexture();
+        const jdTexGeo = new THREE.PlaneGeometry(2.38, 3.38);
+        const jdTexMat = new THREE.MeshStandardMaterial({ map: jdTex, roughness: 0.8 });
+        const jdTexPlane = new THREE.Mesh(jdTexGeo, jdTexMat);
+        jdTexPlane.position.z = 0.018;
+        jobCard.add(jdTexPlane);
+
+        jobCard.position.set(6, 0, -5);
+        jobCard.rotation.set(0, 0.2, 0);
+        scene.add(jobCard);
+      }
+
+      // ── Noise Cards ──────────────────────────
+      if (!isMobile) {
+        const noisePositions = [
+          [-3, 1.5, -3], [-4, -0.5, -4], [-2, -2, -2], [-5, 0.8, -6]
+        ];
+        noisePositions.forEach(([x, y, z]) => {
+          const ng = new THREE.BoxGeometry(2.0, 2.8, 0.03);
+          const nm = new THREE.MeshStandardMaterial({ color: '#EDEAE1', roughness: 0.95, transparent: true, opacity: 0 });
+          const nc = new THREE.Mesh(ng, nm);
+          nc.position.set(x, y, z);
+          nc.rotation.set(
+            (Math.random() - 0.5) * 0.3,
+            (Math.random() - 0.5) * 0.4,
+            (Math.random() - 0.5) * 0.15
+          );
+          scene.add(nc);
+          noiseCards.push(nc);
+        });
+      }
+
+      // ── Section Planes (for explode effect) ──
+      if (!isMobile) {
+        const sectionData = [
+          { label: 'EXPERIENCE', color: '#8B93A7', targetPos: new THREE.Vector3(-2.0, 1.5, 1.0) },
+          { label: 'SKILLS',     color: '#5EEAD4', targetPos: new THREE.Vector3(0,    2.5, 0.5) },
+          { label: 'EDUCATION',  color: '#FF8A73', targetPos: new THREE.Vector3(2.0,  1.5, 1.0) },
+        ];
+        sectionData.forEach(({ color, targetPos }) => {
+          const sg = new THREE.PlaneGeometry(2.8, 1.1);
+          const sm = new THREE.MeshStandardMaterial({ color, roughness: 0.8, transparent: true, opacity: 0, side: THREE.DoubleSide });
+          const sp = new THREE.Mesh(sg, sm);
+          sp.position.copy(resumeDoc.position);
+          sp.userData.targetPos = targetPos;
+          scene.add(sp);
+          sectionPlanes.push(sp);
+        });
+      }
+
+      // ── Connection Lines ─────────────────────
+      if (!isMobile) {
+        const lineCount = 4;
+        for (let i = 0; i < lineCount; i++) {
+          const points = [
+            new THREE.Vector3(-1.2, 0.8 - i * 0.5, -2),
+            new THREE.Vector3( 1.2, 0.8 - i * 0.5, -2),
+          ];
+          const geo = new THREE.BufferGeometry().setFromPoints(points);
+          const mat = new THREE.LineBasicMaterial({ color: '#5EEAD4', transparent: true, opacity: 0 });
+          const line = new THREE.Line(geo, mat);
+          line.visible = false;
+          scene.add(line);
+          connectionLines.push(line);
+        }
+      }
+
+      // ── Score Ring ───────────────────────────
+      if (!isMobile) {
+        const ringGeo = new THREE.TorusGeometry(0.6, 0.04, 16, 64);
+        const ringMat = new THREE.MeshStandardMaterial({ color: '#5EEAD4', emissive: '#5EEAD4', emissiveIntensity: 0.5, transparent: true, opacity: 0 });
+        scoreRing = new THREE.Mesh(ringGeo, ringMat);
+        scoreRing.position.set(0, 3, 0);
+        scoreRing.visible = false;
+        scene.add(scoreRing);
+      }
+
+      // ── Particles ────────────────────────────
+      const particleCount = isMobile ? 80 : 200;
+      const particleGeo = new THREE.BufferGeometry();
+      const positions = new Float32Array(particleCount * 3);
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3]     = (Math.random() - 0.5) * 40;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 30;
+        positions[i * 3 + 2] = -50 + Math.random() * 60;
+      }
+      particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const particleMat = new THREE.PointsMaterial({ color: '#5EEAD4', size: 0.05, transparent: true, opacity: 0.6 });
+      particles = new THREE.Points(particleGeo, particleMat);
+      scene.add(particles);
+
+      // ── Resize handler ───────────────────────
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      });
+    }
+
+    // ─── GSAP ScrollTrigger Animations ──────────────────────────────────────────
+    function initScrollAnimations() {
+      gsap.registerPlugin(ScrollTrigger);
+
+      const totalHeight = document.body.scrollHeight - window.innerHeight;
+
+      // ── Stage 1 — Noise / Problem (20%) ────
+      ScrollTrigger.create({
+        trigger: '#noise',
+        start: 'top 80%',
+        end: 'bottom 20%',
+        onEnter: () => {
+          gsap.to(stageTargets.camera, { x: -1, z: 8.5, duration: 1.2, ease: 'power2.out' });
+          gsap.to(stageTargets.resume, { z: -1, rotY: -0.25, duration: 1.2, ease: 'power2.out' });
+          if (!isMobile) {
+            noiseCards.forEach((card, i) => {
+              gsap.to(card.material, { opacity: 0.18, duration: 0.8, delay: i * 0.12 });
+            });
+          }
+        },
+        onLeaveBack: () => {
+          gsap.to(stageTargets.camera, { x: 0, z: 8, duration: 1.0, ease: 'power2.out' });
+          gsap.to(stageTargets.resume, { x: 1.8, y: 0.2, z: 0, rotY: -0.15, duration: 1.0 });
+          if (!isMobile) {
+            noiseCards.forEach(card => gsap.to(card.material, { opacity: 0, duration: 0.5 }));
+          }
+        }
+      });
+
+      // ── Stage 2 — Scanning (40%) ────────────
+      ScrollTrigger.create({
+        trigger: '#scan-section',
+        start: 'top 75%',
+        end: 'bottom 25%',
+        onEnter: () => {
+          gsap.to(stageTargets.camera, { x: 0, z: 7, duration: 1.0, ease: 'power2.out' });
+          gsap.to(stageTargets.resume, { x: 0, y: 0, z: 0, rotY: -0.05, rotX: 0.02, duration: 1.0, ease: 'power2.out' });
+          if (!isMobile) {
+            noiseCards.forEach(card => gsap.to(card.material, { opacity: 0, duration: 0.4 }));
+          }
+          // Scan progress animation
+          const scanBeam = document.getElementById('scanBeam');
+          gsap.to(scanBeam, { opacity: 1, duration: 0.3 });
+          gsap.to(scanState, {
+            progress: 1,
+            duration: 2.5,
+            ease: 'power1.inOut',
+            onUpdate: () => { scanState.dirty = true; },
+            onStart: () => {
+              gsap.to(aiLight.position, { y: -4, duration: 2.5, ease: 'power1.inOut' });
+              gsap.to(aiLight, { intensity: 3.5, duration: 0.5 });
+            }
+          });
+          // Animate scan beam position
+          gsap.fromTo(scanBeam, { top: '5%' }, { top: '95%', duration: 2.5, ease: 'power1.inOut' });
+        },
+        onLeaveBack: () => {
+          gsap.to(stageTargets.camera, { x: -1, z: 8.5, duration: 1.0 });
+          gsap.to(stageTargets.resume, { z: -1, rotY: -0.25, duration: 1.0 });
+          gsap.to(document.getElementById('scanBeam'), { opacity: 0, duration: 0.4 });
+          gsap.to(scanState, { progress: 0, duration: 0.8, onUpdate: () => { scanState.dirty = true; } });
+          gsap.to(aiLight, { intensity: 1.8, duration: 0.5 });
+          gsap.to(aiLight.position, { y: 6, duration: 0.8 });
+        }
+      });
+
+      // ── Stage 3 — Structure / How (60%) ────
+      ScrollTrigger.create({
+        trigger: '#how',
+        start: 'top 75%',
+        end: 'bottom 25%',
+        onEnter: () => {
+          gsap.to(stageTargets.camera, { x: 0, z: 10, y: 0.5, duration: 1.2, ease: 'power2.out' });
+          gsap.to(document.getElementById('scanBeam'), { opacity: 0, duration: 0.3 });
+          if (!isMobile) {
+            // Explode sections
+            sectionPlanes.forEach((plane, i) => {
+              plane.position.set(resumeDoc.position.x, resumeDoc.position.y, resumeDoc.position.z);
+              gsap.to(plane.position, {
+                x: plane.userData.targetPos.x,
+                y: plane.userData.targetPos.y,
+                z: plane.userData.targetPos.z,
+                duration: 1.2,
+                delay: i * 0.15,
+                ease: 'power3.out'
+              });
+              gsap.to(plane.material, { opacity: 0.7, duration: 0.8, delay: i * 0.15 });
+            });
+            // Fade paper body slightly
+            if (resumeDoc.children[0]) {
+              gsap.to(resumeDoc.children[0].material, { opacity: 0.6, duration: 0.8 });
+              resumeDoc.children[0].material.transparent = true;
+            }
+          }
+        },
+        onLeaveBack: () => {
+          gsap.to(stageTargets.camera, { x: 0, z: 7, y: 0, duration: 1.0 });
+          if (!isMobile) {
+            sectionPlanes.forEach(plane => {
+              gsap.to(plane.material, { opacity: 0, duration: 0.5 });
+              gsap.to(plane.position, { x: 0, y: 0, z: 0, duration: 0.8 });
+            });
+            if (resumeDoc.children[0]) {
+              gsap.to(resumeDoc.children[0].material, { opacity: 1, duration: 0.5 });
+            }
+          }
+        }
+      });
+
+      // ── Stage 4 — Matching (75%) ─────────────
+      ScrollTrigger.create({
+        trigger: '#trust',
+        start: 'top 75%',
+        end: 'bottom 25%',
+        onEnter: () => {
+          gsap.to(stageTargets.camera, { x: 0, y: 1, z: 12, duration: 1.2, ease: 'power2.out' });
+          gsap.to(stageTargets.resume, { x: -2.8, y: 0, z: -2, rotY: 0.2, duration: 1.2, ease: 'power2.out' });
+          if (!isMobile) {
+            // Reset section planes
+            sectionPlanes.forEach(plane => {
+              gsap.to(plane.material, { opacity: 0, duration: 0.4 });
+            });
+            if (resumeDoc.children[0]) {
+              gsap.to(resumeDoc.children[0].material, { opacity: 1, duration: 0.4 });
+            }
+            // Job card enters
+            if (jobCard) {
+              gsap.to(jobCard.position, { x: 2.8, y: 0, z: -2, duration: 1.4, ease: 'power3.out' });
+              gsap.to(jobCard.rotation, { y: -0.2, duration: 1.2 });
+            }
+            // Connection lines
+            connectionLines.forEach((line, i) => {
+              line.visible = true;
+              gsap.to(line.material, { opacity: 0.6, duration: 0.6, delay: 0.8 + i * 0.15 });
+            });
+          }
+        },
+        onLeaveBack: () => {
+          gsap.to(stageTargets.camera, { x: 0, y: 0.5, z: 10, duration: 1.0 });
+          gsap.to(stageTargets.resume, { x: 0, y: 0, z: 0, rotY: -0.05, duration: 1.0 });
+          if (!isMobile) {
+            if (jobCard) {
+              gsap.to(jobCard.position, { x: 6, y: 0, z: -5, duration: 0.8 });
+            }
+            connectionLines.forEach(line => {
+              gsap.to(line.material, { opacity: 0, duration: 0.3, onComplete: () => { line.visible = false; } });
+            });
+          }
+        }
+      });
+
+      // ── Stage 5 — Score (90%) ────────────────
+      ScrollTrigger.create({
+        trigger: '#cta',
+        start: 'top 80%',
+        end: 'bottom 20%',
+        onEnter: () => {
+          gsap.to(stageTargets.camera, { x: 0, y: 2, z: 14, duration: 1.2, ease: 'power2.out' });
+          gsap.to(stageTargets.resume, { x: -3.2, y: -0.5, z: -2, duration: 1.0 });
+          if (!isMobile) {
+            if (jobCard) {
+              gsap.to(jobCard.position, { x: 3.2, y: -0.5, z: -2, duration: 1.0 });
+            }
+            if (scoreRing) {
+              scoreRing.visible = true;
+              gsap.to(scoreRing.material, { opacity: 1, duration: 0.8, delay: 0.5 });
+              gsap.to(scoreRing.position, { y: 1.5, duration: 1.0, delay: 0.3, ease: 'power2.out' });
+            }
+          }
+        },
+        onLeaveBack: () => {
+          gsap.to(stageTargets.camera, { x: 0, y: 1, z: 12, duration: 1.0 });
+          gsap.to(stageTargets.resume, { x: -2.8, y: 0, z: -2, duration: 1.0 });
+          if (!isMobile) {
+            if (scoreRing) {
+              gsap.to(scoreRing.material, { opacity: 0, duration: 0.4, onComplete: () => { scoreRing.visible = false; } });
+              gsap.to(scoreRing.position, { y: 3, duration: 0.6 });
+            }
+          }
+        }
+      });
+
+      // ── Stage 6 — CTA final settle ───────────
+      // Camera settles at (0,0,9), resume back to center clean
+      ScrollTrigger.create({
+        trigger: 'footer',
+        start: 'top 80%',
+        onEnter: () => {
+          gsap.to(stageTargets.camera, { x: 0, y: 0, z: 9, duration: 1.4, ease: 'power2.out' });
+          gsap.to(stageTargets.resume, { x: 0, y: 0, z: 0, rotY: -0.1, rotX: 0.03, duration: 1.2, ease: 'power2.out' });
+          if (!isMobile) {
+            if (jobCard) {
+              gsap.to(jobCard.position, { x: 6, y: 0, z: -5, duration: 0.8 });
+            }
+            connectionLines.forEach(line => {
+              gsap.to(line.material, { opacity: 0, duration: 0.4, onComplete: () => { line.visible = false; } });
+            });
+          }
+        }
+      });
+    }
+
+    // ─── Render Loop ─────────────────────────────────────────────────────────────
+    function animate() {
+      animationId = requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      const elapsed = clock.getElapsedTime();
+
+      // Scan texture redraw (efficient: only when dirty and progress changed meaningfully)
+      if (scanState.dirty && Math.abs(scanState.progress - scanState.lastProgress) > 0.005) {
+        buildResumeTexture(scanState.progress);
+        scanState.lastProgress = scanState.progress;
+        scanState.dirty = false;
+      }
+
+      // Lerp camera toward stage targets
+      camera.position.x += (stageTargets.camera.x - camera.position.x) * (prefersReduced ? 1 : 0.03);
+      camera.position.y += (stageTargets.camera.y - camera.position.y) * (prefersReduced ? 1 : 0.03);
+      camera.position.z += (stageTargets.camera.z - camera.position.z) * (prefersReduced ? 1 : 0.03);
+
+      // Lerp resume position
+      if (resumeDoc) {
+        resumeDoc.position.x += (stageTargets.resume.x - resumeDoc.position.x) * (prefersReduced ? 1 : 0.04);
+        resumeDoc.position.y += (stageTargets.resume.y - resumeDoc.position.y) * (prefersReduced ? 1 : 0.04);
+        resumeDoc.position.z += (stageTargets.resume.z - resumeDoc.position.z) * (prefersReduced ? 1 : 0.04);
+
+        // Mouse parallax rotation
+        const targetY = (stageTargets.resume.rotY || -0.15) + mouse.x * 0.08;
+        const targetX = (stageTargets.resume.rotX || 0.05) - mouse.y * 0.05;
+        resumeDoc.rotation.y += (targetY - resumeDoc.rotation.y) * lerpFactor;
+        resumeDoc.rotation.x += (targetX - resumeDoc.rotation.x) * lerpFactor;
+        // Subtle idle float
+        if (!prefersReduced) {
+          resumeDoc.position.y += Math.sin(elapsed * 0.4) * 0.0008;
+        }
+      }
+
+      // Particles slow rotation
+      if (particles && !prefersReduced) {
+        particles.rotation.y += 0.00015;
+      }
+
+      // Score ring spin
+      if (scoreRing && scoreRing.visible && !prefersReduced) {
+        scoreRing.rotation.z += 0.004;
+      }
+
+      // Connection lines pulse
+      if (!isMobile && connectionLines.length > 0) {
+        connectionLines.forEach((line, i) => {
+          if (line.visible && line.material.opacity > 0.01) {
+            line.material.opacity = 0.4 + 0.2 * Math.sin(elapsed * 2.0 + i * 0.8);
+          }
+        });
+      }
+
+      // AI light subtle movement
+      if (aiLight && !prefersReduced) {
+        aiLight.position.x = -12 + Math.sin(elapsed * 0.3) * 1.5;
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // ─── Init ─────────────────────────────────────────────────────────────────────
+    function init() {
+      initThree();
+      if (!prefersReduced) {
+        initScrollAnimations();
+      }
+      animate();
+    }
+
+    // Wait for DOM + fonts
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+
+  })();
+  </script>
+</body>
+</html>

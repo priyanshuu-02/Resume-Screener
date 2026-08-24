@@ -1,0 +1,362 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --void:   #0B0E14;
+  --void-2: #111623;
+  --paper:  #EDEAE1;
+  --ink:    #1B1F2A;
+  --signal: #5EEAD4;
+  --reject: #FF8A73;
+  --amber:  #F59E0B;
+  --mist:   #8B93A7;
+  --line:   #262C3B;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--void);
+  color: var(--paper);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+.lucent-shell {
+  min-height: 100vh;
+  background: var(--void);
+  color: var(--paper);
+}
+
+.font-display { font-family: 'Space Grotesk', system-ui, sans-serif; }
+.font-mono    { font-family: 'IBM Plex Mono', monospace; }
+
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--void-2); }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--mist); }
+
+.resume-paper {
+  background: #FEFEFE;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.08),
+    0 8px 24px rgba(0,0,0,0.12),
+    0 24px 64px rgba(0,0,0,0.18),
+    inset 0 0 0 1px rgba(0,0,0,0.06);
+  color: #1a1a1a;
+  transform-origin: center top;   /* tilt from top â€” long docs stay anchored */
+  transition: transform 0.1s ease-out;
+  will-change: transform;
+  overflow: visible;              /* let content expand beyond any implicit height */
+  position: relative;             /* scan overlay absolute positioning needs this */
+}
+
+.highlight-strong {
+  background: rgba(94, 234, 212, 0.2);
+  border-bottom: 2px solid rgba(94, 234, 212, 0.8);
+  border-radius: 2px;
+  cursor: pointer;
+  color: #5EEAD4;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.highlight-strong:hover {
+  background: rgba(94, 234, 212, 0.3);
+  box-shadow: 0 0 0 2px rgba(94, 234, 212, 0.25);
+}
+
+.highlight-improve {
+  background: rgba(245, 158, 11, 0.2);
+  border-bottom: 2px solid rgba(245, 158, 11, 0.8);
+  border-radius: 2px;
+  cursor: pointer;
+  color: #F59E0B;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.highlight-improve:hover {
+  background: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+}
+
+.highlight-weak {
+  background: rgba(255, 138, 115, 0.2);
+  border-bottom: 2px solid rgba(255, 138, 115, 0.8);
+  border-radius: 2px;
+  cursor: pointer;
+  color: #FF8A73;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.highlight-weak:hover {
+  background: rgba(255, 138, 115, 0.3);
+  box-shadow: 0 0 0 2px rgba(255, 138, 115, 0.25);
+}
+
+@keyframes scanDown {
+  0%   { top: 0%; opacity: 0; }
+  3%   { opacity: 1; }
+  97%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.scan-line {
+  animation: scanDown 2s ease-in-out forwards;
+}
+
+@keyframes sectionFlash {
+  0%   { background: transparent; }
+  30%  { background: rgba(94, 234, 212, 0.08); }
+  100% { background: transparent; }
+}
+
+.section-illuminating {
+  animation: sectionFlash 0.6s ease forwards;
+}
+
+@keyframes scoreReveal {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.score-reveal {
+  animation: scoreReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInFromRight {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.panel-slide-in {
+  animation: slideInFromRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes tooltipIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tooltip-in {
+  animation: tooltipIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes applySuccess {
+  0%   { background: rgba(94, 234, 212, 0.15); }
+  50%  { background: rgba(94, 234, 212, 0.25); }
+  100% { background: rgba(94, 234, 212, 0.08); }
+}
+
+.apply-success {
+  animation: applySuccess 1.2s ease forwards;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-loading {
+  background: linear-gradient(90deg, var(--void-2) 25%, rgba(38,44,59,0.6) 50%, var(--void-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+@keyframes drawLine {
+  from { stroke-dashoffset: 300; opacity: 0; }
+  to   { stroke-dashoffset: 0;   opacity: 1; }
+}
+
+.connection-line {
+  stroke-dasharray: 300;
+  animation: drawLine 0.6s ease forwards;
+}
+
+@keyframes particleFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+  50%       { transform: translateY(-8px) rotate(180deg); opacity: 1; }
+}
+
+@keyframes keywordPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(94, 234, 212, 0.3); }
+  50%       { box-shadow: 0 0 0 4px rgba(94, 234, 212, 0.12); }
+}
+
+.keyword-pulse {
+  animation: keywordPulse 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+
+/* ── Print / PDF export ─────────────────────────────────────── */
+@media print {
+  /* 1. Reset page - remove ALL height and overflow constraints */
+  html, body {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 2. The app root - undo height:100vh overflow:hidden */
+  #root, .lucent-shell, .grain {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 3. Hide EVERYTHING except the resume */
+  .lucent-shell > * {
+    display: none !important;
+  }
+  
+  /* 4. Show ONLY the resume container */
+  .lucent-shell > div {
+    display: block !important;
+  }
+  .lucent-shell > div > * {
+    display: none !important;
+  }
+  .lucent-shell > div > #resume-print-root {
+    display: block !important;
+  }
+
+  /* 5. The resume column — full width, no scroll clip */
+  #resume-print-root {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    flex-shrink: unset !important;
+  }
+
+  /* 6. Hide the document header label and legend */
+  #resume-print-root > div > div:first-child,
+  #resume-print-root > div > div:last-child {
+    display: none !important;
+  }
+
+  /* 7. Every wrapper inside the resume column */
+  #resume-print-root > * {
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 8. The Framer Motion wrapper */
+  #resume-print-root .resume-paper {
+    box-shadow: none !important;
+    transform: none !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+    color: #1a1a1a !important;
+    border-radius: 0 !important;
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 9. The actual paper content */
+  #resume-print-root .resume-paper > div {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding: 20mm 15mm !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+
+  /* 10. All descendants of the paper — no height caps */
+  #resume-print-root .resume-paper * {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  /* 11. Natural page breaks */
+  section  { page-break-inside: avoid; break-inside: avoid; }
+  li       { page-break-inside: avoid; break-inside: avoid; }
+  h1,h2,h3 { page-break-after:  avoid; break-after:  avoid; }
+
+  /* 12. Hide ALL UI-only elements */
+  nav, 
+  button, 
+  .tooltip-in,
+  .no-print,
+  [class*="badge"],
+  [class*="score"] {
+    display: none !important;
+  }
+
+  /* 13. Remove highlight backgrounds for clean PDF */
+  .highlight-strong,
+  .highlight-improve,
+  .highlight-weak {
+    background: transparent !important;
+    border: none !important;
+    color: inherit !important;
+    padding: 0 !important;
+  }
+
+  /* 14. Force colour printing */
+  * { 
+    -webkit-print-color-adjust: exact !important; 
+    print-color-adjust: exact !important; 
+  }
+
+  /* 15. A4 page with minimal margins (content has its own padding) */
+  @page { 
+    size: A4 portrait; 
+    margin: 0;
+  }
+}
+
+
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
