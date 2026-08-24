@@ -11,6 +11,10 @@ An enterprise-grade, user-isolated AI resume screening and intelligence platform
 Upload candidate resumes (PDF/DOCX/TXT), analyze fit against job descriptions, generate real-time actionable recommendations, and export styled PDF resumes.
 
 ---
+## 🎥 Demo
+
+https://github.com/user-attachments/assets/548c4eea-add4-4a42-8223-0c64b44a15df
+
 
 ## 🌟 Key Features
 
