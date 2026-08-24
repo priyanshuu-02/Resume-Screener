@@ -58,24 +58,8 @@ This project leverages Google's Gemini API for zero-latency structured text pars
 
 Three distinct LLM prompts power the pipeline:
 
-### 1. Structured Data Extraction Prompt
-Extracts structured JSON from unformatted candidate resume text:
-```
-You are an expert resume parsing assistant. Extract structured data from the resume text.
-Return ONLY a valid JSON object matching the following structure:
-{
-  "name": "<full name or null>",
-  "email": "<email or null>",
-  "phone": "<phone or null>",
-  "skills": [...],
-  "experience": [{ "title": "", "company": "", "duration": "", "bullets": [] }],
-  "education": [{ "degree": "", "institution": "", "year": "" }],
-  "projects": [{ "name": "", "description": "", "technologies": [] }],
-  "summary": "<summary or null>"
-}
-
-Resume Text: {rawText}
-```
+### 1. Text Extraction & JSON Formatting
+**Whisperer LLM API** extracts raw plain text from the uploaded resume file (PDF/DOCX/TXT). That raw text is then passed to **Google Gemini**, which formats it into a structured JSON object for use in the downstream scoring and analysis prompts.
 
 ### 2. Candidate Match & Scoring Prompt
 Compares parsed resume structured data against the employer's Job Description:
