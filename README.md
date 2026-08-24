@@ -8,6 +8,25 @@
 
 An enterprise-grade, user-isolated AI resume screening and intelligence platform built with **React (Vite)**, **Node.js (Express)**, **MongoDB Atlas**, and **Google Gemini 1.5/3.6 Flash**. 
 
+<table>
+  <tr>
+    <td width="50%">
+      <img alt="gif_1-ezgif com-video-to-gif-converter" src="https://github.com/user-attachments/assets/f3c09f9a-2881-443f-8f54-3a7d2d2c0f5e" width="100%">
+    </td>
+    <td width="50%">
+      <img alt="gif_2-ezgif com-video-to-gif-converter" src="https://github.com/user-attachments/assets/81e17d2b-ea24-46bf-aae5-c2d4524f0dd0" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img alt="gif_3-ezgif com-video-to-gif-converter" src="https://github.com/user-attachments/assets/715f844b-4396-4137-8b2b-243f99fcf5ab" width="100%">
+    </td>
+    <td width="50%">
+      <img alt="gif_4-ezgif com-video-to-gif-converter" src="https://github.com/user-attachments/assets/3ac5d36f-a909-45cc-8647-a1ae65e5e473" width="100%">
+    </td>
+  </tr>
+</table>
+
 Upload candidate resumes (PDF/DOCX/TXT), analyze fit against job descriptions, generate real-time actionable recommendations, and export styled PDF resumes.
 
 ---
